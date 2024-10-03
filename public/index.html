@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bill Splitter</title>
+    <title>BillsWithFriends</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,26 +25,89 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+        .section {
+            margin-top: 40px;
+            display: none; /* Initially hide all sections */
+        }
+        .leaderboard, .expenses {
+            text-align: left;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 5px 0;
+        }
+        nav a {
+            margin: 0 10px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <h1>Bill Splitter</h1>
-    <p>Enter the total bill and the number of people to split the bill.</p>
+    <nav>
+        <a onclick="showSection('bill-splitter')">Bill Splitter</a>
+        <a onclick="showSection('expense-planner')">Expense Planner</a>
+        <a onclick="showSection('leaderboard')">Leaderboard</a>
+    </nav>
 
-    <div>
-        <label for="total-bill">Total Bill: </label>
-        <input type="number" id="total-bill" placeholder="Total Bill" step="0.01">
+    <!-- Bill Splitter Section -->
+    <div id="bill-splitter" class="section">
+        <h1>Bill Splitter</h1>
+        <p>Enter the total bill and the number of people to split the bill.</p>
+
+        <div>
+            <label for="total-bill">Total Bill: </label>
+            <input type="number" id="total-bill" placeholder="Total Bill" step="0.01">
+        </div>
+        <div>
+            <label for="num-people">Number of People: </label>
+            <input type="number" id="num-people" placeholder="Number of People">
+        </div>
+
+        <button onclick="splitBill()">Split Bill</button>
+        <div class="result" id="result"></div>
     </div>
-    <div>
-        <label for="num-people">Number of People: </label>
-        <input type="number" id="num-people" placeholder="Number of People">
+
+    <!-- Expense Planner Section -->
+    <div id="expense-planner" class="section">
+        <h1>Group Expense Planner</h1>
+        <ul>
+            <li>Dinner - Phoebe: $50.75, Nitin: $40.25, Arin: $30.00</li>
+            <li>Hotel - Jordyn: $150.00, Lizzie: $120.50, Aiden: $89.99</li>
+            <li>Transport - Eva: $60.00, Phoebe: $45.75</li>
+            <li>Concert Tickets - Nitin: $75.00, Arin: $60.00</li>
+        </ul>
     </div>
 
-    <button onclick="splitBill()">Split Bill</button>
-
-    <div class="result" id="result"></div>
+    <!-- Leaderboard Section -->
+    <div id="leaderboard" class="section">
+        <h1>Leaderboard</h1>
+        <ul>
+            <li>Phoebe - $150.75</li>
+            <li>Arin - $90.30</li>
+            <li>Nitin - $60.99</li>
+            <li>Jordyn - $120.40</li>
+        </ul>
+    </div>
 
     <script>
+        // Function to handle showing and hiding sections
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // Show the selected section
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Default to showing the Bill Splitter section
+        showSection('bill-splitter');
+
+        // Split bill function
         async function splitBill() {
             const totalBill = document.getElementById('total-bill').value;
             const numPeople = document.getElementById('num-people').value;
