@@ -1,0 +1,18 @@
+.App {
+    text-align: center;
+  }
+  
+  nav {
+    margin: 20px;
+  }
+  
+  nav a {
+    margin: 10px;
+    text-decoration: none;
+    color: blue;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
+  
