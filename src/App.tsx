@@ -33,3 +33,39 @@
 // };
 
 // export default App;
+
+import React, { useState } from 'react';
+import BillSplitter from './components/BillSplitter';
+import ExpensePlanner from './components/ExpensePlanning';
+import Leaderboard from './components/SocialAccountability';
+
+const App: React.FC = () => {
+  const [currentSection, setCurrentSection] = useState<string>('bill-splitter');
+
+  const renderSection = () => {
+    switch (currentSection) {
+      case 'bill-splitter':
+        return <BillSplitter />;
+      case 'expense-planner':
+        return <ExpensePlanner />;
+      case 'leaderboard':
+        return <Leaderboard />;
+      default:
+        return <BillSplitter />;
+    }
+  };
+
+  return (
+    <div>
+      <nav>
+        <button onClick={() => setCurrentSection('bill-splitter')}>Bill Splitter</button>
+        <button onClick={() => setCurrentSection('expense-planner')}>Expense Planner</button>
+        <button onClick={() => setCurrentSection('leaderboard')}>Leaderboard</button>
+      </nav>
+      <div>{renderSection()}</div>
+    </div>
+  );
+};
+
+export default App;
+
