@@ -1,0 +1,31 @@
+/* NavBar.css */
+
+.navbar {
+     /* Primary color */
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-link {
+    margin-left: 1rem;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: #d9d9d9;
+}
+
+.active-link {
+    font-weight: bold;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-collapse {
+    justify-content: flex-end;
+}

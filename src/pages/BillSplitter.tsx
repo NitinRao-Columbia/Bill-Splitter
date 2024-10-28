@@ -1,0 +1,50 @@
+import React, { useState } from 'react';
+
+const BillSplitter: React.FC = () => {
+  const [totalBill, setTotalBill] = useState<string>('');
+  const [numPeople, setNumPeople] = useState<string>('');
+  const [splitCost, setSplitCost] = useState<string>('');
+
+  const handleSplitBill = () => {
+    const bill = parseFloat(totalBill);
+    const people = parseInt(numPeople);
+
+    if (bill > 0 && people > 0) {
+      const costPerPerson = (bill / people).toFixed(2);
+      setSplitCost(`Each person should pay: $${costPerPerson}`);
+    } else {
+      setSplitCost('Please enter valid numbers for total bill and number of people.');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Bill Splitter</h1>
+      <div>
+        <label htmlFor="total-bill">Total Bill:</label>
+        <input
+          type="number"
+          id="total-bill"
+          placeholder="Total Bill"
+          step="0.01"
+          value={totalBill}
+          onChange={(e) => setTotalBill(e.target.value)}
+        />
+      </div>
+      <div>
+        <label htmlFor="num-people">Number of People:</label>
+        <input
+          type="number"
+          id="num-people"
+          placeholder="Number of People"
+          value={numPeople}
+          onChange={(e) => setNumPeople(e.target.value)}
+        />
+      </div>
+      <button onClick={handleSplitBill}>Split Bill</button>
+      {splitCost && <div className="result">{splitCost}</div>}
+    </div>
+  );
+};
+
+export default BillSplitter;
