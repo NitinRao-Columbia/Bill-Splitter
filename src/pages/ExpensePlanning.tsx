@@ -10,7 +10,6 @@ interface EventExpense {
 }
 
 const GroupExpensePlanner: React.FC = () => {
-  // Hardcoded list of events with participants and their contributions
   const expenses: EventExpense[] = [
     {
       event: 'Dinner',
@@ -45,7 +44,7 @@ const GroupExpensePlanner: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div className="centered-content">
       <h1>Group Expense Planner</h1>
       {expenses.map((expenseEvent, index) => (
         <div key={index}>

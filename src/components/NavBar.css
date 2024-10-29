@@ -1,31 +1,45 @@
-/* NavBar.css */
-
-.navbar {
-     /* Primary color */
+/* Center the entire navbar content */
+.navbar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.navbar-brand {
+/* Center and style the title */
+.navbar-title {
     font-size: 1.5rem;
-    font-weight: bold;
+    margin-bottom: 10px;
+    color: #ffffff;
 }
 
+/* Center and style the nav links as buttons */
+.navbar-links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Style each nav-link as a visible button */
 .nav-link {
-    margin-left: 1rem;
-    transition: color 0.2s;
+    border: 2px solid #007bff; /* Primary color border */
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #007bff; /* Primary color text */
+    text-align: center;
+    background-color: #ffffff; /* White background by default */
+    text-decoration: none;
+    transition: all 0.3s ease;
 }
 
+/* Hover effect to invert colors */
 .nav-link:hover {
-    color: #d9d9d9;
+    background-color: #007bff; /* Primary color background on hover */
+    color: #ffffff; /* White text on hover */
 }
 
 .active-link {
     font-weight: bold;
+    background-color: #007bff;
+    color: #ffffff;
 }
 
-.navbar-toggler {
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.navbar-collapse {
-    justify-content: flex-end;
-}
