@@ -7,10 +7,6 @@ const NavBar = () => {
     return (
         <Navbar bg="primary" variant="dark" expand="lg" sticky="top" className="shadow">
             <Container className="navbar-container">
-                <Navbar.Brand className="navbar-title fw-bold">
-                    Bill Splitter
-                </Navbar.Brand>
-                <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="navbar-links">
                         <Nav.Link as={NavLink} to="/billsplitter" className="nav-link">

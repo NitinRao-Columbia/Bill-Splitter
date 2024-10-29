@@ -29,3 +29,11 @@
     color: #ffffff;
     background-color: #007bff;
 }
+
+.app-title {
+    text-align: center;
+    margin-top: 20px; /* Optional: adds some spacing above the title */
+    font-size: 10; /* Adjust font size as desired */
+    font-weight: bold; /* Optional: makes the title bold */
+  }
+  

@@ -1,4 +1,4 @@
-// App.tsx (in Bill-Splitter root directory)
+// App.tsx
 import { BrowserRouter as Router } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import { Routes, Route } from 'react-router-dom';
@@ -10,6 +10,9 @@ import './App.css';
 const App = () => {
   return (
     <Router>
+      <div className="app-title">
+        <h1>BillsWithFriends</h1>
+      </div>
       <NavBar />
       <Routes>
         <Route path="/billsplitter" element={<BillSplitter />} />
