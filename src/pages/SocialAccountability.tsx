@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../App.css'; 
 
 interface Contribution {
   person: string;
@@ -22,22 +23,26 @@ const SocialAccountability: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="centered-content">
       <h2>Social Accountability</h2>
-      <div>
+      <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="Person's name"
           value={person}
           onChange={(e) => setPerson(e.target.value)}
+          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
         />
         <input
           type="number"
           placeholder="Contribution"
           value={contribution}
           onChange={(e) => setContribution(e.target.value)}
+          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
         />
-        <button onClick={addContribution}>Add Contribution</button>
+        <button onClick={addContribution} className="btn">
+          Add Contribution
+        </button>
       </div>
       <ul>
         {contributions.map((entry, index) => (

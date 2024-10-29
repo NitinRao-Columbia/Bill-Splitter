@@ -1,9 +1,11 @@
+// App.tsx (in Bill-Splitter root directory)
 import { BrowserRouter as Router } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import { Routes, Route } from 'react-router-dom';
 import BillSplitter from './pages/BillSplitter';
 import ExpensePlanner from './pages/ExpensePlanning';
 import SocialAccountability from './pages/SocialAccountability';
+import './App.css';
 
 const App = () => {
   return (

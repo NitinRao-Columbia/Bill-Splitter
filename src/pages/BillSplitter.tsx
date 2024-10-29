@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import '../App.css'; // Import global CSS for centered-content
+
 
 const BillSplitter: React.FC = () => {
   const [totalBill, setTotalBill] = useState<string>('');
