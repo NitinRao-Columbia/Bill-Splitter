@@ -8,8 +8,8 @@
 /* Center and style the title */
 .navbar-title {
     font-size: 1.5rem;
-    margin-bottom: 10px;
     color: #ffffff;
+    margin-bottom: 15px; /* Adds space below the title */
 }
 
 /* Center and style the nav links as buttons */

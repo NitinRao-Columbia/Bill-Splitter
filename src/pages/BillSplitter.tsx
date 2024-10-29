@@ -1,6 +1,7 @@
+
+
 // import React, { useState } from 'react';
 // import '../App.css'; // Import global CSS for centered-content
-
 
 // const BillSplitter: React.FC = () => {
 //   const [totalBill, setTotalBill] = useState<string>('');
@@ -20,7 +21,7 @@
 //   };
 
 //   return (
-//     <div>
+//     <div className="centered-content">
 //       <h1>Bill Splitter</h1>
 //       <div>
 //         <label htmlFor="total-bill">Total Bill:</label>
@@ -43,7 +44,7 @@
 //           onChange={(e) => setNumPeople(e.target.value)}
 //         />
 //       </div>
-//       <button onClick={handleSplitBill}>Split Bill</button>
+//       <button onClick={handleSplitBill} className="btn">Split Bill</button>
 //       {splitCost && <div className="result">{splitCost}</div>}
 //     </div>
 //   );
@@ -52,7 +53,7 @@
 // export default BillSplitter;
 
 import React, { useState } from 'react';
-import '../App.css'; // Import global CSS for centered-content
+import '../App.css';
 
 const BillSplitter: React.FC = () => {
   const [totalBill, setTotalBill] = useState<string>('');
@@ -74,7 +75,7 @@ const BillSplitter: React.FC = () => {
   return (
     <div className="centered-content">
       <h1>Bill Splitter</h1>
-      <div>
+      <div style={{ marginBottom: '1rem' }}>  {/* Add margin here */}
         <label htmlFor="total-bill">Total Bill:</label>
         <input
           type="number"
@@ -85,7 +86,7 @@ const BillSplitter: React.FC = () => {
           onChange={(e) => setTotalBill(e.target.value)}
         />
       </div>
-      <div>
+      <div style={{ marginBottom: '1rem' }}> {/* Add margin here */}
         <label htmlFor="num-people">Number of People:</label>
         <input
           type="number"
@@ -95,8 +96,10 @@ const BillSplitter: React.FC = () => {
           onChange={(e) => setNumPeople(e.target.value)}
         />
       </div>
-      <button onClick={handleSplitBill} className="btn">Split Bill</button>
-      {splitCost && <div className="result">{splitCost}</div>}
+      <button onClick={handleSplitBill} className="btn" style={{ marginTop: '1rem' }}>
+        Split Bill
+      </button>
+      {splitCost && <div className="result" style={{ marginTop: '1rem' }}>{splitCost}</div>}
     </div>
   );
 };
