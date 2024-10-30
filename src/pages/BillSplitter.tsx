@@ -105,3 +105,67 @@ const BillSplitter: React.FC = () => {
 };
 
 export default BillSplitter;
+
+// Possible help with front end to flask integration
+// // BillSplitter.tsx - Update to integrate with Flask API using Axios
+// import React, { useState, useEffect } from 'react';
+// import axios from 'axios';
+
+// interface Bill {
+//   id: string;
+//   user_id: string;
+//   total: number;
+//   items: Array<{ item_id: string; cost: number; quantity: number }>;
+// }
+
+// const BillSplitter: React.FC = () => {
+//   const [bills, setBills] = useState<Bill[]>([]);
+//   const [loading, setLoading] = useState<boolean>(true);
+
+//   useEffect(() => {
+//     // Fetch all bills when the component mounts
+//     axios.get('http://localhost:5000/bills')
+//       .then(response => {
+//         setBills(response.data);
+//         setLoading(false);
+//       })
+//       .catch(error => {
+//         console.error('There was an error fetching the bills!', error);
+//         setLoading(false);
+//       });
+//   }, []);
+
+//   const handleAddBill = () => {
+//     // Example for adding a new bill
+//     const newBill = { user_id: 'user123', total: 0, items: [] };
+//     axios.post('http://localhost:5000/bills', newBill)
+//       .then(response => {
+//         setBills(prevBills => [...prevBills, { ...newBill, id: response.data.id }]);
+//       })
+//       .catch(error => {
+//         console.error('There was an error creating the bill!', error);
+//       });
+//   };
+
+//   return (
+//     <div>
+//       <h1>Bill Splitter</h1>
+//       {loading ? (
+//         <p>Loading bills...</p>
+//       ) : (
+//         <div>
+//           {bills.map((bill) => (
+//             <div key={bill.id}>
+//               <h3>Bill ID: {bill.id}</h3>
+//               <p>User ID: {bill.user_id}</p>
+//               <p>Total: {bill.total}</p>
+//             </div>
+//           ))}
+//         </div>
+//       )}
+//       <button onClick={handleAddBill}>Add Bill</button>
+//     </div>
+//   );
+// };
+
+// export default BillSplitter;
