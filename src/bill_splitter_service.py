@@ -85,7 +85,7 @@ def calculate_total_async(bill_id):
 
 def calculate_total(bill_id):
     # Req 4 This function performs the asynchronous calculation of the total cost for a bill, simulating a long-running process.
-    time.sleep(5)  # Simulate long calculation
+    # time.sleep(5)  # Simulate long calculation
     bill_items = items.get(bill_id, [])
     total = sum(item['cost'] for item in bill_items)
     bills[bill_id]['total'] = total
