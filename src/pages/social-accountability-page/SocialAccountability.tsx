@@ -13,14 +13,25 @@ const SocialAccountability: React.FC = () => {
 
   const addContribution = () => {
     if (!person || !contribution) return;
-    const newContribution = {
-      person,
-      contribution: parseFloat(contribution),
-    };
-    setContributions([...contributions, newContribution]);
+    const normalizedPerson = person.toLowerCase();
+    const contributionValue = parseFloat(contribution);
+    setContributions((prevContributions) => {
+      const existingIndex = prevContributions.findIndex((entry) => entry.person === normalizedPerson);
+      if (existingIndex !== -1) {
+        const updatedContributions = prevContributions.map((entry, index) =>
+          index === existingIndex
+            ? { ...entry, contribution: entry.contribution + contributionValue }
+            : entry
+        );
+        return updatedContributions;
+      }
+      return [...prevContributions, { person: normalizedPerson, contribution: contributionValue }];
+    });
     setPerson('');
     setContribution('');
   };
+
+  const sortedContributions = contributions.sort((a, b) => b.contribution - a.contribution);
 
   return (
     <div className="centered-content">
@@ -44,13 +55,24 @@ const SocialAccountability: React.FC = () => {
           Add Contribution
         </button>
       </div>
-      <ul>
-        {contributions.map((entry, index) => (
-          <li key={index}>
-            {entry.person} - ${entry.contribution.toFixed(2)}
-          </li>
-        ))}
-      </ul>
+      <table className="contribution-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #ddd' }}>
+            <th style={{ padding: '0.5rem' }}>Rank</th>
+            <th style={{ padding: '0.5rem' }}>Name</th>
+            <th style={{ padding: '0.5rem' }}>Contribution</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedContributions.map((entry, index) => (
+            <tr key={index} style={{ borderBottom: '1px solid #ddd' }}>
+              <td style={{ padding: '0.5rem' }}>{index + 1}</td>
+              <td style={{ padding: '0.5rem' }}>{entry.person}</td>
+              <td style={{ padding: '0.5rem' }}>${entry.contribution.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
