@@ -1,5 +1,5 @@
 import React from 'react';
-import '../App.css'; // Import global CSS for centered-content
+import './expenseplanning.css';
 
 interface EventExpense {
   event: string;

@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
 import threading
 import time
+from PIL import Image
 
 app = Flask(__name__)
+
+from flask_cors import CORS
+CORS(app)
 
 # Sample Data Storage
 bills = {}
@@ -14,6 +18,36 @@ items = {}
 def generate_id():
     return str(len(bills) + 1)
 
+@app.route('/')
+def home():
+    return jsonify({"message": "Welcome to the Bill Splitter API!"})
+
+# POST: Process receipt directly
+@app.route('/bills/<bill_id>/receipt', methods=['POST'])
+def process_receipt(bill_id):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in the request'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    # Validate file extension
+    if not file.filename.lower().endswith(('jpg', 'jpeg', 'png')):
+        return jsonify({'error': 'Invalid file format'}), 400
+
+    try:
+        # Open and verify image
+        image = Image.open(file)
+        image.verify()  # Ensure the file is an actual image
+
+        return jsonify({
+            'message': 'Receipt processed successfully',
+            'bill_id': bill_id
+        }), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
+    
 # GET: Retrieve a bill
 @app.route('/bills/<bill_id>', methods=['GET'])
 # Req 1 This GET method satisfies the requirement for retrieving a resource (bill) by its ID.
