@@ -25,7 +25,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ billId }) => {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`/bills/${billId}/receipt`, {
+      const response = await fetch(`http://10.206.104.164:8000/bills/${billId}/receipt`, {
         method: 'POST',
         body: formData,
       });

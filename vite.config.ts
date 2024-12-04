@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     port: 5002,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3000',  
-        changeOrigin: true,               
+      '/bills': {
+        target: 'http://10.206.104.164:8000',
+        changeOrigin: true,
       },
     },
   },
