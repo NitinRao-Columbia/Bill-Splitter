@@ -1,150 +1,22 @@
-# from flask import Flask, request, jsonify
-# import threading
-# import time
-# from PIL import Image
-
-# app = Flask(__name__)
-
-# from flask_cors import CORS
-# CORS(app)
-
-# # Sample Data Storage
-# bills = {}
-# items = {}
-
-# # Routes for managing bills and items
-
-# # GET, PUT, POST for Bills
-# def generate_id():
-#     return str(len(bills) + 1)
-
-# @app.route('/')
-# def home():
-#     return jsonify({"message": "Welcome to the Bill Splitter API!"})
-
-# # POST: Process receipt directly
-# @app.route('/bills/<bill_id>/receipt', methods=['POST'])
-# def process_receipt(bill_id):
-#     if 'file' not in request.files:
-#         return jsonify({'error': 'No file part in the request'}), 400
-
-#     file = request.files['file']
-#     if file.filename == '':
-#         return jsonify({'error': 'No selected file'}), 400
-
-#     # Validate file extension
-#     if not file.filename.lower().endswith(('jpg', 'jpeg', 'png')):
-#         return jsonify({'error': 'Invalid file format'}), 400
-
-#     try:
-#         # Open and verify image
-#         image = Image.open(file)
-#         image.verify()  # Ensure the file is an actual image
-
-#         return jsonify({
-#             'message': 'Receipt processed successfully',
-#             'bill_id': bill_id
-#         }), 200
-#     except Exception as e:
-#         return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
-    
-# # GET: Retrieve a bill
-# @app.route('/bills/<bill_id>', methods=['GET'])
-# # Req 1 This GET method satisfies the requirement for retrieving a resource (bill) by its ID.
-# def get_bill(bill_id):
-#     bill = bills.get(bill_id)
-#     if not bill:
-#         return jsonify({'error': 'Bill not found'}), 404
-#     return jsonify(bill)
-
-# # POST: Create a new bill
-# @app.route('/bills', methods=['POST'])
-# # Req 1 This POST method satisfies the requirement for creating a resource (bill).
-# def create_bill():
-#     data = request.get_json()
-#     bill_id = generate_id()
-#     bills[bill_id] = data
-#     return jsonify({'id': bill_id, 'message': 'Bill created successfully'}), 201
-
-# # PUT: Update an existing bill
-# @app.route('/bills/<bill_id>', methods=['PUT'])
-# # Req 1 This PUT method satisfies the requirement for updating a resource (bill) by its ID.
-# def update_bill(bill_id):
-#     if bill_id not in bills:
-#         return jsonify({'error': 'Bill not found'}), 404
-#     data = request.get_json()
-#     bills[bill_id] = data
-#     return jsonify({'message': 'Bill updated successfully'}), 200
-
-# # Basic Navigation Paths with Query Parameters
-# @app.route('/bills', methods=['GET'])
-# # Req 2 This GET method with query parameters supports basic navigation paths by allowing filtering by user_id.
-# def get_bills():
-#     user_id = request.args.get('user_id')
-#     if user_id:
-#         user_bills = {bill_id: bill for bill_id, bill in bills.items() if bill.get('user_id') == user_id}
-#         return jsonify(user_bills)
-#     return jsonify(bills)
-
-# # Synchronous Call to Sub-resource
-# @app.route('/bills/<bill_id>/items', methods=['GET'])
-# # Req 3 This GET method provides a synchronous call to sub-resources (items associated with a bill).
-# def get_bill_items(bill_id):
-#     if bill_id not in bills:
-#         return jsonify({'error': 'Bill not found'}), 404
-#     return jsonify(items.get(bill_id, []))
-
-# # POST: Create an item for a bill
-# @app.route('/bills/<bill_id>/items', methods=['POST'])
-# # Req 1 This POST method allows the creation of sub-resources (items) for a given bill.
-# def create_item(bill_id):
-#     if bill_id not in bills:
-#         return jsonify({'error': 'Bill not found'}), 404
-#     data = request.get_json()
-#     item_id = generate_id()
-#     if bill_id not in items:
-#         items[bill_id] = []
-#     items[bill_id].append({**data, 'item_id': item_id})
-#     return jsonify({'item_id': item_id, 'message': 'Item created successfully'}), 201
-
-# # Asynchronous Resource Update
-# @app.route('/bills/<bill_id>/calculate', methods=['POST'])
-# # Req 4 This POST method implements an asynchronous operation to calculate the total cost for a bill.
-# def calculate_total_async(bill_id):
-#     if bill_id not in bills:
-#         return jsonify({'error': 'Bill not found'}), 404
-#     thread = threading.Thread(target=calculate_total, args=(bill_id,))
-#     thread.start()
-#     return jsonify({'message': 'Calculation started'}), 202
-
-# def calculate_total(bill_id):
-#     # Req 4 This function performs the asynchronous calculation of the total cost for a bill, simulating a long-running process.
-#     # time.sleep(5)  # Simulate long calculation
-#     bill_items = items.get(bill_id, [])
-#     total = sum(item['cost'] for item in bill_items)
-#     bills[bill_id]['total'] = total
-#     print(f'Total calculated for bill {bill_id}: {total}')
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
 import os
 import time
 from threading import Thread
+from typing import Optional
 from dotenv import load_dotenv
-from typing import List, Optional, Dict, Any
 from flask import Flask, request, jsonify, make_response, url_for, g
 from db import DB
 from pydantic import BaseModel, ValidationError
 from uuid import uuid4
 from PIL import Image
 from flask_cors import CORS
-
+from google.cloud import vision
+from receipt_reader import extract_text_from_image, parse_receipt_text
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.expanduser('~/igneous-aleph-394703-550f3acb3017.json')
 # Database connection setup
 db = DB(
     host=os.getenv("DB_HOST"),
@@ -473,7 +345,7 @@ def calculate_total_async(bill_id: str):
 # Receipt processing
 @app.route('/bills/<bill_id>/receipt', methods=['POST'])
 def process_receipt(bill_id):
-    """Process receipt image for a bill."""
+    """Process receipt image for a bill using receipt_reader.py functions."""
     if 'file' not in request.files:
         return jsonify({'error': 'No file part in the request'}), 400
 
@@ -489,37 +361,40 @@ def process_receipt(bill_id):
         # Open and verify image
         image = Image.open(file)
         image.verify()  # Ensure the file is an actual image
+        file.seek(0)  # Reset file pointer after verification
 
-        # Process the image (placeholder for actual OCR processing)
-        # For example, extract items and prices from the receipt image
+        # Read image content from the in-memory file
+        image_content = file.read()
 
-        # Let's assume we extracted items and add them to the bill
-        # This is a placeholder example
-        extracted_items = [
-            {'item_name': 'Item1', 'quantity': 1, 'price': 10.00},
-            {'item_name': 'Item2', 'quantity': 2, 'price': 5.00},
-        ]
-        print(extracted_items)
-        for item in extracted_items:
-            db.insert("Bill_Items", {
-                "bill_id": bill_id,
-                "item_name": item["item_name"],
-                "quantity": item["quantity"],
-                "price": item["price"]
-            })
+        # Initialize Google Cloud Vision client
+        client = vision.ImageAnnotatorClient()
+
+        # Extract text from the image using the imported function
+        extracted_text = extract_text_from_image(client, image_content)
+
+        # Parse the extracted text using the imported function
+        receipt_data = parse_receipt_text(extracted_text)
+        print(receipt_data)
+
+        # Insert parsed items into the database
+        for item in receipt_data:
+            item_name, quantity, price = item
+            if item_name and price is not None:
+                db.insert("Bill_Items", {
+                    "bill_id": bill_id,
+                    "item_name": item_name,
+                    "quantity": quantity or 1,
+                    "price": price
+                })
 
         return jsonify({
             'message': 'Receipt processed successfully',
             'bill_id': bill_id
         }), 200
-    except Exception as e:
-        return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
 
-@app.route('/test-upload', methods=['POST'])
-def test_upload():
-    print("Test upload endpoint hit.")
-    print(f"Files in request: {request.files}")
-    return jsonify({'message': 'Test upload successful'}), 200
+    except Exception as e:
+        print(f"Error processing receipt: {e}")  # Log the error
+        return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
 
 # Run the Flask app if executed as main
 if __name__ == "__main__":
