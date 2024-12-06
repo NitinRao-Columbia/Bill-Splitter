@@ -18,6 +18,9 @@ const NavBar = () => {
                         <Nav.Link as={NavLink} to="/socialaccountability" className="nav-link">
                             Social Accountability
                         </Nav.Link>
+                        <Nav.Link as={NavLink} to="/userlisting" className="nav-link"> {/* Add this */}
+                            Users Listing
+                        </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>

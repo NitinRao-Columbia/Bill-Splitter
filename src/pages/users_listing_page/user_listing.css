@@ -1,0 +1,11 @@
+/* Centered content */
+.centered-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
