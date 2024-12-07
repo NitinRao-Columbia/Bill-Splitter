@@ -5,6 +5,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, make_response, url_for, g
 from flask_swagger import swagger
+from flask_swagger_ui import get_swaggerui_blueprint
 from db import DB
 from pydantic import BaseModel, ValidationError
 from uuid import uuid4
