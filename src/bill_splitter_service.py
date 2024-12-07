@@ -4,7 +4,7 @@ from threading import Thread
 from typing import Optional
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, make_response, url_for, g
-from flask_swagger import swagger  # Importing flask-swagger
+from flask_swagger import swagger
 from db import DB
 from pydantic import BaseModel, ValidationError
 from uuid import uuid4
@@ -743,6 +743,24 @@ def process_receipt(bill_id):
     except Exception as e:
         print(f"Error processing receipt: {e}")  # Log the error
         return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
+    
+from flask_swagger_ui import get_swaggerui_blueprint
+
+# Swagger UI setup
+SWAGGER_URL = '/swagger-ui'  # URL for Swagger UI
+API_URL = '/swagger'         # Existing route for Swagger spec
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,  # Swagger UI blueprint endpoint
+    API_URL,      # API spec endpoint
+    config={
+        'app_name': "Bills With Friends"
+    }
+)
+
+# Register the Swagger UI blueprint
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
 
 # Run the Flask app if executed as main
 if __name__ == "__main__":
