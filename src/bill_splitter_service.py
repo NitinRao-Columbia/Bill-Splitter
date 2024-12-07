@@ -102,7 +102,73 @@ def swagger_spec():
         "version": "1.0.0",            # Specify the version
         "description": "An API to manage and split bills among participants."
     }
+    swag['definitions'] = {
+        "Bill": {
+            "type": "object",
+            "properties": {
+                "bill_id": {"type": "string"},
+                "bill_name": {"type": "string"},
+                "total_amount": {"type": "number"},
+                "created_at": {"type": "string", "format": "date-time"}
+            }
+        },
+        "BillCreate": {
+            "type": "object",
+            "properties": {
+                "bill_name": {"type": "string"},
+                "total_amount": {"type": "number"}
+            },
+            "required": ["bill_name", "total_amount"]
+        },
+        "BillUpdate": {
+            "type": "object",
+            "properties": {
+                "bill_name": {"type": "string"},
+                "total_amount": {"type": "number"}
+            }
+        },
+        "BillItem": {
+            "type": "object",
+            "properties": {
+                "item_id": {"type": "string"},
+                "bill_id": {"type": "string"},
+                "item_name": {"type": "string"},
+                "quantity": {"type": "integer"},
+                "price": {"type": "number"}
+            }
+        },
+        "BillItemCreate": {
+            "type": "object",
+            "properties": {
+                "item_name": {"type": "string"},
+                "quantity": {"type": "integer"},
+                "price": {"type": "number"}
+            },
+            "required": ["item_name", "quantity", "price"]
+        },
+        "BillParticipant": {
+            "type": "object",
+            "properties": {
+                "participant_id": {"type": "string"},
+                "bill_id": {"type": "string"},
+                "user_id": {"type": "string"},
+                "amount_paid": {"type": "number"},
+                "amount_owed": {"type": "number"},
+                "created_at": {"type": "string", "format": "date-time"}
+            }
+        },
+        "BillParticipantCreate": {
+            "type": "object",
+            "properties": {
+                "user_id": {"type": "string"},
+                "amount_paid": {"type": "number"},
+                "amount_owed": {"type": "number"}
+            },
+            "required": ["user_id"]
+        }
+    }
     return jsonify(swag)
+
 
 
 # Routes for managing bills
@@ -664,7 +730,7 @@ def calculate_total_async(bill_id: str):
 # Receipt processing
 @app.route('/bills/<bill_id>/receipt', methods=['POST'])
 def process_receipt(bill_id):
-    """Process receipt image for a bill using receipt_reader.py functions.
+    """Asynchronous receipt processing for a bill.
     ---
     tags:
       - Bills
@@ -680,14 +746,12 @@ def process_receipt(bill_id):
         type: file
         description: The receipt image file to process
     responses:
-      200:
-        description: Receipt processed successfully
+      202:
+        description: Receipt processing started successfully
         schema:
           type: object
           properties:
-            message:
-              type: string
-            bill_id:
+            detail:
               type: string
       400:
         description: Error in file upload or processing
@@ -705,46 +769,43 @@ def process_receipt(bill_id):
     if not file.filename.lower().endswith(('jpg', 'jpeg', 'png')):
         return jsonify({'error': 'Invalid file format'}), 400
 
+    def process_receipt_task(bill_id, file_content):
+        try:
+            # Initialize Google Cloud Vision client
+            client = vision.ImageAnnotatorClient()
+
+            # Extract text from the image using the imported function
+            extracted_text = extract_text_from_image(client, file_content)
+
+            # Parse the extracted text using the imported function
+            receipt_data = parse_receipt_text(extracted_text)
+
+            # Insert parsed items into the database
+            for item in receipt_data:
+                item_name, quantity, price = item
+                if item_name and price is not None:
+                    db.insert("Bill_Items", {
+                        "bill_id": bill_id,
+                        "item_name": item_name,
+                        "quantity": quantity or 1,
+                        "price": price
+                    })
+            print(f"Receipt processed for bill {bill_id}")
+        except Exception as e:
+            print(f"Error in receipt processing for bill {bill_id}: {e}")
+
     try:
-        # Open and verify image
-        image = Image.open(file)
-        image.verify()  # Ensure the file is an actual image
-        file.seek(0)  # Reset file pointer after verification
+        # Read image content
+        file_content = file.read()
 
-        # Read image content from the in-memory file
-        image_content = file.read()
+        # Start asynchronous task
+        Thread(target=process_receipt_task, args=(bill_id, file_content)).start()
 
-        # Initialize Google Cloud Vision client
-        client = vision.ImageAnnotatorClient()
-
-        # Extract text from the image using the imported function
-        extracted_text = extract_text_from_image(client, image_content)
-
-        # Parse the extracted text using the imported function
-        receipt_data = parse_receipt_text(extracted_text)
-        print(receipt_data)
-
-        # Insert parsed items into the database
-        for item in receipt_data:
-            item_name, quantity, price = item
-            if item_name and price is not None:
-                db.insert("Bill_Items", {
-                    "bill_id": bill_id,
-                    "item_name": item_name,
-                    "quantity": quantity or 1,
-                    "price": price
-                })
-
-        return jsonify({
-            'message': 'Receipt processed successfully',
-            'bill_id': bill_id
-        }), 200
-
+        return jsonify({"detail": "Receipt processing started"}), 202
     except Exception as e:
-        print(f"Error processing receipt: {e}")  # Log the error
-        return jsonify({'error': f'Failed to process the image: {str(e)}'}), 500
-    
-from flask_swagger_ui import get_swaggerui_blueprint
+        print(f"Error starting receipt processing: {e}")
+        return jsonify({'error': f'Failed to start receipt processing: {str(e)}'}), 500
+
 
 # Swagger UI setup
 SWAGGER_URL = '/swagger-ui'  # URL for Swagger UI
