@@ -15,10 +15,34 @@ const BillSplitter: React.FC = () => {
   const [splitCost, setSplitCost] = useState('');
   const [receiptDetails, setReceiptDetails] = useState<ReceiptItem[]>([]);
   const [error, setError] = useState('');
-  const billId = 'b1f01e23c4d24e1ea6d9a26b5f1556d7';
+  const billId = 'b1f01e23c4d24e1ea6d9a26b5f1556d7'; // Static ID for demonstration
 
-  const [email, setEmail] = useState('');
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [email, setEmail] = useState(''); // State to hold the email input
+  const [participants, setParticipants] = useState<string[]>([]); // List of participants
+
+  // Function to handle adding a participant
+  const handleAddParticipant = async () => {
+    if (!email) {
+      setError('Please enter an email address');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://3.137.160.197:8000/bills/${billId}/participants`,
+        { email: email }
+      );
+      
+      if (response.status === 200) {
+        setParticipants([...participants, email]);
+        setEmail(''); // Clear input after successful addition
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to add participant');
+      console.error(error);
+    }
+  };
 
   const handleSplitBill = async () => {
     const bill = parseFloat(totalBill);
@@ -55,29 +79,6 @@ const BillSplitter: React.FC = () => {
       } else {
         setError('Failed to fetch receipt details');
       }
-    }
-  };
-
-  const handleAddParticipant = async () => {
-    if (!email) {
-      setError('Please enter an email address');
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `http://3.137.160.197:8000/bills/${billId}/participants`,
-        { email: email }
-      );
-      
-      if (response.status === 200) {
-        setParticipants([...participants, email]);
-        setEmail(''); // Clear input after successful addition
-        setError('');
-      }
-    } catch (error) {
-      setError('Failed to add participant');
-      console.error(error);
     }
   };
 
