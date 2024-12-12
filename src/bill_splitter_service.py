@@ -921,6 +921,58 @@ def process_receipt(bill_id):
     except Exception as e:
         print(f"Error starting receipt processing: {e}")
         return jsonify({'error': f'Failed to start receipt processing: {str(e)}'}), 500
+    
+@app.route('/bills/<bill_id>/items/ids', methods=['GET'])
+def get_item_ids(bill_id):
+    """
+    Get IDs of all items associated with a bill.
+    ---
+    tags:
+      - Bill Items
+    parameters:
+      - name: bill_id
+        in: path
+        type: string
+        required: true
+        description: The ID of the bill
+    responses:
+      200:
+        description: List of item IDs associated with the bill
+        schema:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  item_name:
+                    type: string
+                  quantity:
+                    type: integer
+                  price:
+                    type: integer  # Changed from number to integer
+      404:
+        description: Bill not found or no items found
+      500:
+        description: Internal server error
+    """
+    try:
+        # Fetch all items for the given bill_id
+        items = db.select("Bill_Items", rows=["item_id", "item_name", "quantity", "price"], filters={"bill_id": bill_id})
+        if not items:
+            return jsonify({"error": "No items found for the given bill_id"}), 404
+
+        # Convert price from Decimal to int for JSON response
+        for item in items:
+            item['price'] = int(item['price']) if item['price'] is not None else 0
+
+        return jsonify({"items": items}), 200
+    except Exception as e:
+        print(f"Error fetching items for bill_id {bill_id}: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 # Swagger UI setup
