@@ -62,8 +62,11 @@ class BillParticipantBase(BaseModel):
     amount_owed: Optional[float] = 0.0
     created_at: Optional[str]
 
-class BillParticipantCreate(BillParticipantBase):
-    user_id: str
+from pydantic import BaseModel
+
+class BillParticipantCreate(BaseModel):
+    pass
+
 
 class BillParticipantUpdate(BillParticipantBase):
     pass
@@ -582,57 +585,38 @@ def get_bill_participants(bill_id: str):
     participants = db.select("Bill_Participants", rows=[], filters={"bill_id": bill_id})
     return jsonify(participants), 200
 
-@app.route("/bills/<bill_id>/participants", methods=["POST"])
-def add_bill_participant(bill_id: str):
-    """Add a participant to a bill.
-    ---
-    tags:
-      - Bill Participants
-    parameters:
-      - name: bill_id
-        in: path
-        type: string
-        required: true
-        description: The ID of the bill to add a participant to
-      - name: participant
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/BillParticipantCreate'
-    responses:
-      201:
-        description: Participant added successfully
-        schema:
-          $ref: '#/definitions/BillParticipant'
-      404:
-        description: Bill not found
-      400:
-        description: Validation error
-    """
+@app.route("/bills/<bill_id>/participants/<email>", methods=["POST"])
+def add_bill_participant(bill_id: str, email: str):
+    """Add a participant to a bill."""
+    # Check if the bill exists
     existing_bill = db.select("Bills", rows=[], filters={"bill_id": bill_id})
     if not existing_bill:
         return jsonify({"detail": "Bill not found"}), 404
 
-    try:
-        participant_data = BillParticipantCreate(**request.json)
-    except ValidationError as e:
-        return jsonify(e.errors()), 400
+    # Fetch the user_id from the User Management Service
+    user_service_url = f"http://3.145.144.209:8001/users/email/{email}"
+    response = requests.get(user_service_url)
+    if response.status_code == 404:
+        return jsonify({"detail": "User not found"}), 404
+    if response.status_code != 200:
+        return jsonify({"detail": "Error fetching user details"}), response.status_code
 
-    participant_dict = participant_data.dict()
-    participant_dict["bill_id"] = bill_id
-    participant_dict["created_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
+    user_data = response.json()
+    user_id = user_data.get("user_id")
 
     # Insert into Bill_Participants table
-    db.insert("Bill_Participants", {
-        "bill_id": participant_dict["bill_id"],
-        "user_id": participant_dict["user_id"],
-        "amount_paid": participant_dict.get("amount_paid", 0.0),
-        "amount_owed": participant_dict.get("amount_owed", 0.0),
-        "created_at": participant_dict["created_at"]
-    })
+    try:
+        db.insert("Bill_Participants", {
+            "bill_id": bill_id,
+            "user_id": user_id
+        })
+    except Exception as e:
+        return jsonify({"detail": f"Error adding participant: {str(e)}"}), 400
 
-    print(f"Bill participant added: {participant_dict}")  # Print added participant details
-    return make_response(jsonify(participant_dict), 201)
+    return jsonify({
+        "bill_id": bill_id,
+        "user_id": user_id
+    }), 201
 
 @app.route("/bills/<bill_id>/participants/<participant_id>", methods=["PUT"])
 def update_bill_participant(bill_id: str, participant_id: str):
