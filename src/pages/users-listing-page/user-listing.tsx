@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
-import "./user_listing.css";
+import "./user-listing.css";
 
 interface User {
     first_name: string;

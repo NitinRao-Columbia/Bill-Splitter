@@ -1,5 +1,6 @@
 import os
 import time
+import requests
 from threading import Thread
 from typing import Optional
 from dotenv import load_dotenv
@@ -70,17 +71,30 @@ class BillParticipantUpdate(BillParticipantBase):
 # Middleware for starting a timer before handling a request
 @app.before_request
 def start_timer():
-    """Start a timer before handling a request."""
+    """
+    Start a timer before handling a request and assign a correlation ID.
+    """
     g.start = time.time()
+    # Generate or propagate correlation ID
+    g.correlation_id = request.headers.get("X-Correlation-ID", str(uuid4()))
+
 
 # Middleware for logging request details after the response is generated
 @app.after_request
 def log_request(response):
-    """Log the request details after the response is generated."""
+    """
+    Log request details after handling, including the correlation ID.
+    """
     duration = time.time() - g.start
-    request_details = f"{request.method} {request.path} - Status: {response.status_code} - Duration: {duration:.4f}s"
-    print(request_details)  # For production, use a proper logging mechanism
+    log_message = (
+        f"Correlation ID: {g.correlation_id} | "
+        f"{request.method} {request.path} - {response.status_code} - {duration:.4f}s"
+    )
+    app.logger.info(log_message)  # Use Flask's logger instead of print
+    # Add Correlation ID to the response headers
+    response.headers["X-Correlation-ID"] = g.correlation_id
     return response
+
 
 @app.route("/")
 def healthcheck():
@@ -389,6 +403,16 @@ def get_bill_items(bill_id: str):
         return jsonify({"detail": "Bill not found"}), 404
 
     items = db.select("Bill_Items", rows=[], filters={"bill_id": bill_id})
+    
+    # Convert Decimal to float for each item
+    for item in items:
+        if 'price' in item:
+            item['price'] = float(item['price'])
+        if 'amount_paid' in item:
+            item['amount_paid'] = float(item['amount_paid'])
+        if 'amount_owed' in item:
+            item['amount_owed'] = float(item['amount_owed'])
+
     return jsonify(items), 200
 
 @app.route("/bills/<bill_id>/items", methods=["POST"])
@@ -696,6 +720,79 @@ def delete_bill_participant(bill_id: str, participant_id: str):
     print(f"Bill participant deleted: {existing_participant}")  # Print deleted participant details
     return "", 204
 
+@app.route("/bills/<bill_id>/items/<item_id>/pay", methods=["POST"])
+def pay_item(bill_id: str, item_id: int):
+    """
+    Pay for a specific item in a bill and update user points.
+    ---
+    tags:
+      - Bill Items
+    parameters:
+      - name: bill_id
+        in: path
+        type: string
+        required: true
+        description: The ID of the bill containing the item
+      - name: item_id
+        in: path
+        type: integer
+        required: true
+        description: The ID of the item to pay for
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            user_id:
+              type: string
+              description: The ID of the user paying for the item
+              required: true
+    responses:
+      200:
+        description: Item paid successfully
+      400:
+        description: Validation error or item not found
+    """
+    data = request.json
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"detail": "user_id is required"}), 400
+
+    # Fetch the item
+    item = db.select("Bill_Items", rows=[], filters={"bill_id": bill_id, "item_id": item_id})
+    if not item:
+        return jsonify({"detail": "Item not found"}), 400
+
+    item = item[0]
+
+    # Fetch the user's existing data
+    user_response = requests.get(f"http://3.145.144.209:8001/users/{user_id}")
+    if user_response.status_code != 200:
+        return jsonify({"detail": "Failed to fetch user data"}), 400
+
+    user_data = user_response.json()
+
+    # Update the user's points
+    points = user_data.get("points", 0) + int(item["price"] * 100)
+    updated_user_data = {
+        "first_name": user_data["first_name"],
+        "last_name": user_data["last_name"],
+        "email": user_data["email"],
+        "points": points,
+    }
+
+    update_response = requests.put(
+        f"http://3.145.144.209:8001/users/{user_id}", json=updated_user_data
+    )
+    if update_response.status_code != 200:
+        return jsonify({"detail": "Failed to update user points", "error": update_response.json()}), 400
+
+    # Remove the item from the bill
+    db.delete("Bill_Items", filters={"bill_id": bill_id, "item_id": item_id})
+
+    return jsonify({"detail": "Item paid successfully", "updated_points": points}), 200
+
 # Asynchronous operations
 @app.route("/bills/<bill_id>/calculate", methods=["POST"])
 def calculate_total_async(bill_id: str):
@@ -806,6 +903,31 @@ def process_receipt(bill_id):
     except Exception as e:
         print(f"Error starting receipt processing: {e}")
         return jsonify({'error': f'Failed to start receipt processing: {str(e)}'}), 500
+
+@app.route("/bills/<bill_id>/participants", methods=["POST"])
+def add_bill_participant(bill_id: str):
+    existing_bill = db.select("Bills", rows=[], filters={"bill_id": bill_id})
+    if not existing_bill:
+        return jsonify({"detail": "Bill not found"}), 404
+
+    try:
+        participant_data = BillParticipantCreate(**request.json)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
+
+    participant_dict = participant_data.dict()
+    participant_dict["bill_id"] = bill_id
+    participant_dict["created_at"] = time.strftime('%Y-%m-%d %H:%M:%S')
+
+    db.insert("Bill_Participants", {
+        "bill_id": participant_dict["bill_id"],
+        "user_id": participant_dict["user_id"],
+        "amount_paid": participant_dict.get("amount_paid", 0.0),
+        "amount_owed": participant_dict.get("amount_owed", 0.0),
+        "created_at": participant_dict["created_at"]
+    })
+
+    return make_response(jsonify(participant_dict), 201)
 
 
 # Swagger UI setup

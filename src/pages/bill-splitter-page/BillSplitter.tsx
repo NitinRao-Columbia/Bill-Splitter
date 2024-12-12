@@ -2,13 +2,23 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import FileUpload from './Upload-Button';
 
+// Define an interface for the receipt item
+interface ReceiptItem {
+  item_name: string;
+  price: number;
+  quantity: number;
+}
+
 const BillSplitter: React.FC = () => {
   const [totalBill, setTotalBill] = useState('');
   const [numPeople, setNumPeople] = useState('');
   const [splitCost, setSplitCost] = useState('');
-  const [receiptDetails, setReceiptDetails] = useState([]);
+  const [receiptDetails, setReceiptDetails] = useState<ReceiptItem[]>([]);
   const [error, setError] = useState('');
   const billId = 'b1f01e23c4d24e1ea6d9a26b5f1556d7';
+
+  const [email, setEmail] = useState('');
+  const [participants, setParticipants] = useState<string[]>([]);
 
   const handleSplitBill = async () => {
     const bill = parseFloat(totalBill);
@@ -33,14 +43,41 @@ const BillSplitter: React.FC = () => {
 
   const fetchReceiptDetails = async () => {
     try {
-      const response = await axios.get(`http://3.137.160.197:8000/bills/${billId}/items`);
+      const response = await axios.get<ReceiptItem[]>(`http://3.137.160.197:8000/bills/${billId}/items`);
       if (response.data && response.data.length > 0) {
         setReceiptDetails(response.data);
       } else {
         throw new Error('No receipt details available');
       }
     } catch (error) {
-      setError(`Failed to fetch receipt details: ${error.message || 'Failed to fetch receipt details'}`);
+      if (error instanceof Error) {
+        setError(`Failed to fetch receipt details: ${error.message}`);
+      } else {
+        setError('Failed to fetch receipt details');
+      }
+    }
+  };
+
+  const handleAddParticipant = async () => {
+    if (!email) {
+      setError('Please enter an email address');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://3.137.160.197:8000/bills/${billId}/participants`,
+        { email: email }
+      );
+      
+      if (response.status === 200) {
+        setParticipants([...participants, email]);
+        setEmail(''); // Clear input after successful addition
+        setError('');
+      }
+    } catch (error) {
+      setError('Failed to add participant');
+      console.error(error);
     }
   };
 
@@ -72,6 +109,38 @@ const BillSplitter: React.FC = () => {
           </ul>
         </div>
       )}
+
+    <div style={{ marginTop: '2rem' }}>
+    <h3>Add Participants</h3>
+    <div style={{ marginBottom: '1rem' }}>
+      <label htmlFor="participant-email">Participant Email:</label>
+      <input
+        type="email"
+        id="participant-email"
+        placeholder="Enter email address"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+      />
+      <button 
+        onClick={handleAddParticipant}
+        className="btn"
+        style={{ marginLeft: '0.5rem' }}
+      >
+        Add Participant
+      </button>
+    </div>
+
+    {participants.length > 0 && (
+      <div>
+        <h4>Current Participants:</h4>
+        <ul>
+          {participants.map((participant, index) => (
+            <li key={index}>{participant}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+    </div>
     </div>
   );
 };
