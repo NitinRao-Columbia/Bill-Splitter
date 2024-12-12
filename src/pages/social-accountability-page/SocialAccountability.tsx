@@ -1,74 +1,70 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './socialaccountability.css';
 
-interface Contribution {
-  person: string;
-  contribution: number;
+interface LeaderboardEntry {
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  points: number;
 }
 
-const SocialAccountability: React.FC = () => {
-  const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [person, setPerson] = useState<string>('');
-  const [contribution, setContribution] = useState<string>('');
+const Leaderboard: React.FC = () => {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addContribution = () => {
-    if (!person || !contribution) return;
-    const normalizedPerson = person.toLowerCase();
-    const contributionValue = parseFloat(contribution);
-    setContributions((prevContributions) => {
-      const existingIndex = prevContributions.findIndex((entry) => entry.person === normalizedPerson);
-      if (existingIndex !== -1) {
-        const updatedContributions = prevContributions.map((entry, index) =>
-          index === existingIndex
-            ? { ...entry, contribution: entry.contribution + contributionValue }
-            : entry
-        );
-        return updatedContributions;
+  useEffect(() => {
+    // Fetch leaderboard data from the backend
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await fetch('http://18.220.217.116:8002/leaderboard');
+        if (!response.ok) {
+          throw new Error('Failed to fetch leaderboard');
+        }
+        const data = await response.json();
+        setLeaderboard(data);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-      return [...prevContributions, { person: normalizedPerson, contribution: contributionValue }];
-    });
-    setPerson('');
-    setContribution('');
+    };
+
+    fetchLeaderboard();
+  }, []);
+
+  const getRankEmoji = (rank: number) => {
+    if (rank === 1) return '🥇'; // Gold medal
+    if (rank === 2) return '🥈'; // Silver medal
+    if (rank === 3) return '🥉'; // Bronze medal
+    return `${rank}`; // Default: rank number for others
   };
 
-  const sortedContributions = contributions.sort((a, b) => b.contribution - a.contribution);
+  if (loading) {
+    return <div>Loading leaderboard...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="centered-content">
-      <h2>Social Accountability</h2>
-      <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Person's name"
-          value={person}
-          onChange={(e) => setPerson(e.target.value)}
-          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
-        />
-        <input
-          type="number"
-          placeholder="Contribution"
-          value={contribution}
-          onChange={(e) => setContribution(e.target.value)}
-          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
-        />
-        <button onClick={addContribution} className="btn">
-          Add Contribution
-        </button>
-      </div>
+      <h2 className="leaderboard-title">LEADERBOARD</h2>
       <table className="contribution-table" style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #ddd' }}>
             <th style={{ padding: '0.5rem' }}>Rank</th>
             <th style={{ padding: '0.5rem' }}>Name</th>
-            <th style={{ padding: '0.5rem' }}>Contribution</th>
+            <th style={{ padding: '0.5rem' }}>Points</th>
           </tr>
         </thead>
         <tbody>
-          {sortedContributions.map((entry, index) => (
-            <tr key={index} style={{ borderBottom: '1px solid #ddd' }}>
-              <td style={{ padding: '0.5rem' }}>{index + 1}</td>
-              <td style={{ padding: '0.5rem' }}>{entry.person}</td>
-              <td style={{ padding: '0.5rem' }}>${entry.contribution.toFixed(2)}</td>
+          {leaderboard.map((entry, index) => (
+            <tr key={entry.user_id} style={{ borderBottom: '1px solid #ddd' }}>
+              <td style={{ padding: '0.5rem' }}>{getRankEmoji(index + 1)}</td>
+              <td style={{ padding: '0.5rem' }}>{`${entry.first_name} ${entry.last_name}`}</td>
+              <td style={{ padding: '0.5rem' }}>{entry.points}</td>
             </tr>
           ))}
         </tbody>
@@ -77,4 +73,4 @@ const SocialAccountability: React.FC = () => {
   );
 };
 
-export default SocialAccountability;
+export default Leaderboard;

@@ -9,3 +9,22 @@
     max-width: 600px;
     margin: 0 auto;
 }
+
+.leaderboard-title {
+    font-family: 'Times New Roman', cursive; /* Fun and playful font */
+    font-size: 2.5rem;               /* Large font size */
+    color: #007bff;                  /* Vibrant coral color */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+    margin-bottom: 1rem;
+    text-align: center;
+    animation: pulse 2s infinite;    /* Animation for fun effect */
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05); /* Slightly enlarge in the middle of the animation */
+    }
+  }
