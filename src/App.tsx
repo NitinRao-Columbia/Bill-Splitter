@@ -40,9 +40,9 @@ import { useEffect, useState } from 'react';
 
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Temporarily set isAuthenticated to true for testing
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
-  // Check if the user is authenticated
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {

@@ -23,8 +23,8 @@ def extract_text_from_image(client, image_content):
 
     if texts:
         extracted_text = texts[0].description
-        print('Detected text:')
-        print(extracted_text)
+        # print('Detected text:')
+        # print(extracted_text)
     else:
         print('No text detected')
         extracted_text = ""
@@ -48,8 +48,8 @@ def parse_receipt_text(extracted_text):
             item_lines.append(line.strip())
 
     # Pair items with prices
-    print(f"Items: {item_lines}")
-    print(f"Prices: {price_lines}")
+    # print(f"Items: {item_lines}")
+    # print(f"Prices: {price_lines}")
     receipt_data = []
     max_pairs = max(len(item_lines), len(price_lines))  # Ensure all items are accounted for
     for i in range(max_pairs):
