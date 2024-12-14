@@ -1,27 +1,27 @@
 import React from 'react';
+import './login.css';
 
-const Login: React.FC = () => {
-  const handleLogin = () => {
-    // Redirect the user to the FastAPI login endpoint
-    window.location.href = 'http://localhost:5001/login'; // FastAPI backend URL
+const LoginPage = () => {
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:5001/login';
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h1>Welcome to BillsWithFriends</h1>
-      <p>Please log in to continue:</p>
-      <button
-        onClick={handleLogin}
-        style={{
-          padding: '10px 20px',
-          fontSize: '18px',
-          cursor: 'pointer',
-        }}
-      >
-        Login with Google
-      </button>
+    <div className="login-container">
+      <div className="login-box">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Welcome to BillsWithFriends</h2>
+          <p className="mt-2 text-sm text-gray-600">Please sign in to continue</p>
+        </div>
+        <button
+          onClick={handleGoogleLogin}
+          className="login-button"
+        >
+          Sign in with Google
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Login;
+export default LoginPage;

@@ -12,9 +12,6 @@ const NavBar = () => {
                         <Nav.Link as={NavLink} to="/billsplitter" className="nav-link">
                             Bill Splitter
                         </Nav.Link>
-                        <Nav.Link as={NavLink} to="/expenseplanner" className="nav-link">
-                            Expense Planner
-                        </Nav.Link>
                         <Nav.Link as={NavLink} to="/socialaccountability" className="nav-link">
                             Social Accountability
                         </Nav.Link>
