@@ -132,9 +132,14 @@ const App = () => {
     <AuthContext.Provider value={authContextValue}>
       <Router>
         <div className="app-container">
-          <div className="app-title">
-            <h1>BillsWithFriends</h1>
-          </div>
+        <div className="app-title">
+          <img
+            src="/images/logo.png"
+            alt="BillsWithFriends Logo"
+            className="app-logo"
+          />
+          <h1 className="app-title-text">BillsWithFriends</h1>
+        </div>
           {isAuthenticated && <NavBar />}
           <Routes>
             <Route path="/login" element={isAuthenticated ? <Navigate to="/home" /> : <LoginPage />} />

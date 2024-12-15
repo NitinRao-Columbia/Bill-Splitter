@@ -31,9 +31,22 @@
 }
 
 .app-title {
-    text-align: center;
-    margin-top: 20px; /* Optional: adds some spacing above the title */
-    font-size: 10; /* Adjust font size as desired */
-    font-weight: bold; /* Optional: makes the title bold */
+    display: flex; /* Aligns items horizontally */
+    align-items: center; /* Vertically centers the items */
+    justify-content: center; /* Centers the content horizontally */
+    gap: 8px; /* Adds space between the logo and the title */
+    margin: 20px 0; /* Add spacing above and below */
   }
+  
+  .app-logo {
+    width: 30px; /* Adjust size of the logo */
+    height: 30px;
+  }
+  
+  .app-title-text {
+    font-family: 'Poppins', sans-serif; /* Clean, modern font */
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+  }  
   
